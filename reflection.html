@@ -1,0 +1,673 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daily Reflection | Be Still</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #FAF7F1;
+      color: #796A61;
+      font-family: Georgia, serif;
+    }
+
+    .app {
+      max-width: 550px;
+      margin: auto;
+      padding: 30px 22px 60px;
+    }
+
+    .back {
+      color: #796A61;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    h1 {
+      font-size: 31px;
+      font-weight: normal;
+      margin: 30px 0 10px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      line-height: 1.8;
+      margin-bottom: 25px;
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 13px;
+      margin-bottom: 25px;
+    }
+
+    .choice {
+      border: 2px solid transparent;
+      border-radius: 18px;
+      padding: 22px 13px;
+      font: 17px Georgia, serif;
+      color: #796A61;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .choice small {
+      display: block;
+      margin-top: 9px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .choice.selected {
+      border-color: #B89C91;
+    }
+
+    .pink { background: #F4E4E3; }
+    .yellow { background: #F5EBCD; }
+
+    .editor {
+      background: #E8D9CB;
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    .editor[hidden],
+    .prompt[hidden] {
+      display: none;
+    }
+
+    .editor h2 {
+      font-size: 20px;
+      font-weight: normal;
+      margin: 0 0 12px;
+    }
+
+    .prompt {
+      background: #FAF7F1;
+      border-radius: 13px;
+      padding: 16px;
+      line-height: 1.7;
+      font-size: 15px;
+      margin-bottom: 16px;
+    }
+
+    .date-label {
+      font-size: 12px;
+      margin-bottom: 13px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 190px;
+      padding: 15px;
+      border: 1px solid #D8C7BA;
+      border-radius: 13px;
+      background: #FFFCF8;
+      color: #796A61;
+      font: 15px Georgia, serif;
+      line-height: 1.8;
+      resize: vertical;
+    }
+
+    .save {
+      width: 100%;
+      border: none;
+      border-radius: 13px;
+      background: #F4E4E3;
+      color: #65574F;
+      padding: 15px;
+      margin-top: 14px;
+      font: 16px Georgia, serif;
+      cursor: pointer;
+    }
+
+    h2 {
+      font-size: 21px;
+      font-weight: normal;
+    }
+
+    .calendar {
+      background: #F4E4E3;
+      border-radius: 20px;
+      padding: 18px;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .calendar-header strong {
+      font-weight: normal;
+      font-size: 17px;
+    }
+
+    .arrow {
+      border: none;
+      background: #FFFCF8;
+      color: #796A61;
+      border-radius: 10px;
+      width: 36px;
+      height: 36px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 5px;
+      text-align: center;
+    }
+
+    .weekday {
+      font-size: 11px;
+      padding: 8px 0;
+    }
+
+    .day {
+      aspect-ratio: 1;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      color: #796A61;
+      font: 13px Georgia, serif;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .day.today {
+      outline: 1px solid #B89C91;
+    }
+
+    .day.has-entry {
+      background: #FFFCF8;
+      font-weight: bold;
+    }
+
+    .day.has-entry::after {
+      content: "";
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #B89C91;
+      bottom: 3px;
+      left: calc(50% - 2px);
+    }
+
+    .day:focus-visible,
+    .choice:focus-visible,
+    .arrow:focus-visible {
+      outline: 2px solid #796A61;
+      outline-offset: 2px;
+    }
+
+    .history {
+      margin-top: 20px;
+    }
+
+    .history-card {
+      background: #F5EBCD;
+      border-radius: 15px;
+      padding: 17px;
+      margin-top: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .history-card h3 {
+      font-weight: normal;
+      font-size: 17px;
+      margin: 8px 0;
+    }
+
+    .history-card p {
+      white-space: pre-wrap;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .small {
+      font-size: 12px;
+      opacity: .85;
+    }
+
+    .empty {
+      font-size: 14px;
+      line-height: 1.7;
+      padding: 10px 0;
+    }
+
+    footer {
+      margin-top: 35px;
+      text-align: center;
+      font-style: italic;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <a href="index.html" class="back">
+      ← Back to Be Still
+    </a>
+
+    <h1>Daily Reflection ♡</h1>
+
+    <p class="subtitle">
+      A little time to slow down, reflect, and
+      spend a moment with God.
+    </p>
+
+    <div class="choices">
+      <button class="choice pink" id="prayerChoice">
+        Prayer
+        <small>Reflect on a prayer ♡</small>
+      </button>
+
+      <button class="choice yellow" id="questionChoice">
+        Question
+        <small>Today's faith question ♡</small>
+      </button>
+    </div>
+
+    <section class="editor" id="editor" hidden>
+      <h2 id="editorTitle"></h2>
+      <div class="date-label" id="editorDate"></div>
+
+      <div class="prompt" id="prompt" hidden></div>
+
+      <textarea
+        id="answer"
+        placeholder="Write what's on your heart..."
+        aria-label="Your daily reflection"
+      ></textarea>
+
+      <button class="save" id="saveButton">
+        Save My Reflection ♡
+      </button>
+    </section>
+
+    <h2>My Reflection Calendar ♡</h2>
+
+    <section class="calendar">
+      <div class="calendar-header">
+        <button class="arrow" id="previous"
+                aria-label="Previous month">‹</button>
+        <strong id="monthTitle"></strong>
+        <button class="arrow" id="next"
+                aria-label="Next month">›</button>
+      </div>
+
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </section>
+
+    <section class="history">
+      <h2 id="historyTitle">My Reflections ♡</h2>
+      <div id="historyEntries"></div>
+    </section>
+
+    <footer>
+      Be still, and know that I am God. ♡
+    </footer>
+  </main>
+
+  <script>
+    const storageKey = "beStillReflections";
+
+    // These are original faith-based prompts for Be Still.
+    const questions = [
+      "Where did you notice God's presence today?",
+      "What is something you need to surrender to God?",
+      "What are you most grateful for in this season?",
+      "What has God been teaching you about patience?",
+      "Where in your life do you need more trust?",
+      "What is one worry you can give to God today?",
+      "How have you seen God provide for you recently?",
+      "What is a prayer you are still waiting on?",
+      "What does being still with God mean to you?",
+      "Where do you need to show yourself more grace?",
+      "How can you love someone well today?",
+      "What is one way your faith has grown?",
+      "What truth about God do you need to remember?",
+      "What is something you are afraid to let go of?",
+      "How can you make more room for prayer?",
+      "When have you felt God's peace unexpectedly?",
+      "What is one blessing you sometimes overlook?",
+      "What would trusting God's timing look like today?",
+      "How can you practice contentment right now?",
+      "What is a Bible verse speaking to your heart?",
+      "What is one thing you want to thank God for?",
+      "Where are you seeking control instead of peace?",
+      "How can you encourage someone in their faith?",
+      "What has a difficult season taught you?",
+      "What do you need God's wisdom about today?",
+      "What is something you can celebrate today?",
+      "How can you be more present with God?",
+      "What is a promise from Scripture you hold close?",
+      "What is one way you have changed through prayer?",
+      "What does faithfulness look like in your life?",
+      "What is one hope you want to bring to God?",
+      "How can you respond with kindness today?",
+      "What are you learning about forgiveness?",
+      "Where do you need courage right now?",
+      "What is one way God has surprised you?",
+      "What would you say to God if you had no fear?",
+      "What is something beautiful about this season?",
+      "What is a distraction you want to release?",
+      "How can you rest in God's love today?",
+      "What is one way you can serve someone?",
+      "When did you last feel truly thankful?",
+      "What do you want to remember about today?",
+      "What is a small prayer you can carry this week?",
+      "How can you choose peace over worry?",
+      "What has helped you feel close to God?",
+      "What does trusting God with tomorrow mean?",
+      "What is one thing you want to grow in?",
+      "What are you learning about waiting?",
+      "How can you be gentle with yourself today?",
+      "What is one answered prayer you cherish?",
+      "What is a fear you want to replace with faith?",
+      "What would a quiet moment with God look like?",
+      "How can you be thankful even in uncertainty?"
+    ];
+
+    const editor = document.getElementById("editor");
+    const editorTitle = document.getElementById("editorTitle");
+    const editorDate = document.getElementById("editorDate");
+    const promptBox = document.getElementById("prompt");
+    const answerBox = document.getElementById("answer");
+    const prayerChoice = document.getElementById("prayerChoice");
+    const questionChoice = document.getElementById("questionChoice");
+    const calendarGrid = document.getElementById("calendarGrid");
+    const monthTitle = document.getElementById("monthTitle");
+    const historyEntries = document.getElementById("historyEntries");
+    const historyTitle = document.getElementById("historyTitle");
+
+    function localDate(date = new Date()) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return year + "-" + month + "-" + day;
+    }
+
+    function formatDate(value) {
+      if (!value) return "";
+      const parts = value.split("-");
+      if (parts.length !== 3) return value;
+      return parts[1] + "/" + parts[2] + "/" + parts[0];
+    }
+
+    function getSaved() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey));
+        return Array.isArray(saved) ? saved : [];
+      } catch {
+        return [];
+      }
+    }
+
+    let reflections = getSaved();
+    let selectedType = "";
+    let selectedDate = localDate();
+    let viewingMonth = new Date();
+    viewingMonth.setDate(1);
+
+    function dailyQuestion(dateString) {
+      // Deterministic date-based selection: same question all day.
+      const [year, month, day] = dateString.split("-").map(Number);
+      const dateNumber = Math.floor(
+        Date.UTC(year, month - 1, day) / 86400000
+      );
+      const index = ((dateNumber % questions.length) +
+        questions.length) % questions.length;
+      return questions[index];
+    }
+
+    function getEntry(date, type) {
+      return reflections.find(item =>
+        item.date === date && item.type === type
+      );
+    }
+
+    function selectReflection(type, date = localDate()) {
+      selectedType = type;
+      selectedDate = date;
+
+      editor.hidden = false;
+      editorTitle.textContent =
+        type === "prayer" ? "Prayer Reflection ♡" : "Today's Question ♡";
+      editorDate.textContent = formatDate(date);
+
+      prayerChoice.classList.toggle(
+        "selected", type === "prayer"
+      );
+      questionChoice.classList.toggle(
+        "selected", type === "question"
+      );
+
+      promptBox.hidden = type !== "question";
+
+      if (type === "question") {
+        promptBox.textContent = dailyQuestion(date);
+      }
+
+      const saved = getEntry(date, type);
+      answerBox.value = saved ? saved.answer : "";
+
+      if (date !== localDate()) {
+        answerBox.readOnly = true;
+        document.getElementById("saveButton").hidden = true;
+      } else {
+        answerBox.readOnly = false;
+        document.getElementById("saveButton").hidden = false;
+      }
+
+      editor.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }
+
+    function saveReflection() {
+      if (!selectedType) return;
+
+      if (selectedDate !== localDate()) {
+        alert("Past reflections are read-only.");
+        return;
+      }
+
+      const answer = answerBox.value.trim();
+
+      if (!answer) {
+        alert("Write a little reflection before saving. ♡");
+        return;
+      }
+
+      const existing = getEntry(selectedDate, selectedType);
+
+      const entry = {
+        id: existing ? existing.id : crypto.randomUUID(),
+        date: selectedDate,
+        type: selectedType,
+        question: selectedType === "question"
+          ? dailyQuestion(selectedDate)
+          : "",
+        answer
+      };
+
+      const updated = reflections.filter(item =>
+        !(item.date === selectedDate &&
+          item.type === selectedType)
+      );
+
+      updated.push(entry);
+
+      try {
+        localStorage.setItem(
+          storageKey,
+          JSON.stringify(updated)
+        );
+
+        reflections = updated;
+        renderCalendar();
+        renderHistory(selectedDate);
+        alert("Your reflection has been saved. ♡");
+      } catch {
+        alert(
+          "Could not save. Please copy your reflection before leaving."
+        );
+      }
+    }
+
+    function renderCalendar() {
+      calendarGrid.replaceChildren();
+
+      const year = viewingMonth.getFullYear();
+      const month = viewingMonth.getMonth();
+
+      monthTitle.textContent =
+        viewingMonth.toLocaleDateString("en-US", {
+          month: "long",
+          year: "numeric"
+        });
+
+      ["S", "M", "T", "W", "T", "F", "S"].forEach(day => {
+        const label = document.createElement("span");
+        label.className = "weekday";
+        label.textContent = day;
+        calendarGrid.append(label);
+      });
+
+      const firstWeekday = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      for (let i = 0; i < firstWeekday; i++) {
+        calendarGrid.append(document.createElement("span"));
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = localDate(new Date(year, month, day));
+        const hasEntry = reflections.some(
+          item => item.date === date
+        );
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "day";
+        button.textContent = String(day);
+        button.setAttribute(
+          "aria-label",
+          formatDate(date) +
+          (hasEntry ? ", reflection saved" : "")
+        );
+
+        if (date === localDate()) {
+          button.classList.add("today");
+        }
+
+        if (hasEntry) {
+          button.classList.add("has-entry");
+        }
+
+        button.addEventListener("click", () => {
+          renderHistory(date);
+        });
+
+        calendarGrid.append(button);
+      }
+    }
+
+    function renderHistory(date) {
+      historyEntries.replaceChildren();
+
+      historyTitle.textContent =
+        "Reflections for " + formatDate(date) + " ♡";
+
+      const entries = reflections.filter(
+        item => item.date === date
+      );
+
+      if (entries.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "empty";
+        empty.textContent =
+          "No reflections saved for this date yet. ♡";
+        historyEntries.append(empty);
+        return;
+      }
+
+      entries.forEach(item => {
+        const card = document.createElement("article");
+        card.className = "history-card";
+
+        const label = document.createElement("div");
+        label.className = "small";
+        label.textContent =
+          item.type === "prayer"
+            ? "Prayer Reflection"
+            : "Daily Question";
+
+        const heading = document.createElement("h3");
+        heading.textContent =
+          item.type === "question"
+            ? (item.question || dailyQuestion(item.date))
+            : "A moment with God ♡";
+
+        const text = document.createElement("p");
+        text.textContent = item.answer;
+
+        card.append(label, heading, text);
+
+        const openButton = document.createElement("button");
+        openButton.type = "button";
+        openButton.className = "save";
+        openButton.textContent = "View Reflection ♡";
+        openButton.addEventListener("click", () => {
+          selectReflection(item.type, item.date);
+        });
+
+        card.append(openButton);
+        historyEntries.append(card);
+      });
+    }
+
+    prayerChoice.addEventListener("click", () => {
+      selectReflection("prayer");
+    });
+
+    questionChoice.addEventListener("click", () => {
+      selectReflection("question");
+    });
+
+    document.getElementById("saveButton")
+      .addEventListener("click", saveReflection);
+
+    document.getElementById("previous")
+      .addEventListener("click", () => {
+        viewingMonth.setMonth(viewingMonth.getMonth() - 1);
+        renderCalendar();
+      });
+
+    document.getElementById("next")
+      .addEventListener("click", () => {
+        viewingMonth.setMonth(viewingMonth.getMonth() + 1);
+        renderCalendar();
+      });
+
+    renderCalendar();
+    renderHistory(localDate());
+  </script>
+</body>
+</html>

@@ -1,0 +1,424 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Backup & Restore | Be Still</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #FAF7F1;
+      color: #796A61;
+      font-family: Georgia, serif;
+    }
+
+    .app {
+      max-width: 520px;
+      margin: auto;
+      padding: 30px 22px 60px;
+    }
+
+    .back {
+      color: #796A61;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    h1 {
+      margin: 30px 0 10px;
+      font-size: 30px;
+      font-weight: normal;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      line-height: 1.8;
+      margin-bottom: 25px;
+    }
+
+    .card {
+      padding: 23px;
+      border-radius: 20px;
+      margin-bottom: 18px;
+    }
+
+    .pink { background: #F4E4E3; }
+    .beige { background: #E8D9CB; }
+    .yellow { background: #F5EBCD; }
+
+    h2 {
+      font-size: 21px;
+      font-weight: normal;
+      margin: 0 0 12px;
+    }
+
+    p {
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .count {
+      font-size: 13px;
+      margin: 12px 0;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 13px;
+      background: #FFFCF8;
+      color: #65574F;
+      font: 16px Georgia, serif;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    input[type="file"] {
+      display: block;
+      width: 100%;
+      margin: 16px 0;
+      font: 13px Georgia, serif;
+      color: #796A61;
+    }
+
+    .warning {
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .status {
+      font-size: 13px;
+      line-height: 1.7;
+      margin-top: 12px;
+      white-space: pre-wrap;
+    }
+
+    .status:empty { display: none; }
+
+    footer {
+      text-align: center;
+      font-size: 13px;
+      font-style: italic;
+      margin-top: 35px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <a href="index.html" class="back">
+      ← Back to Be Still
+    </a>
+
+    <h1>Backup & Restore ♡</h1>
+    <p class="subtitle">
+      Keep an extra copy of your conversations with God,
+      safely tucked away for another day.
+    </p>
+
+    <section class="card pink">
+      <h2>Backup My Journal ♡</h2>
+      <p>
+        Download a copy of your saved prayers,
+        answered-prayer details, and Daily Reflections.
+      </p>
+
+      <div class="count" id="counts"></div>
+
+      <button type="button" id="backupButton">
+        Download My Backup ♡
+      </button>
+
+      <div class="status" id="backupStatus"
+           role="status"></div>
+    </section>
+
+    <section class="card beige">
+      <h2>Restore My Journal ♡</h2>
+      <p>
+        Choose a Be Still backup file to bring your
+        saved prayers and reflections back.
+      </p>
+
+      <input
+        type="file"
+        id="restoreFile"
+        accept=".json,application/json"
+        aria-label="Choose Be Still backup file"
+      >
+
+      <div class="count" id="preview"></div>
+
+      <button type="button" id="restoreButton" disabled>
+        Restore My Backup ♡
+      </button>
+
+      <p class="warning">
+        Restoring replaces the prayers and reflections
+        currently saved in this browser. Download a fresh
+        backup first if you want to keep them.
+      </p>
+
+      <div class="status" id="restoreStatus"
+           role="status"></div>
+    </section>
+
+    <section class="card yellow">
+      <h2>A Little Reminder ♡</h2>
+      <p>
+        Your backup file contains your private journal
+        writing in readable form. Keep it somewhere
+        only you can access.
+      </p>
+      <p>
+        Backups are not automatic. Download a new one
+        whenever you've added important entries.
+      </p>
+    </section>
+
+    <footer>
+      Be still. Be present. Be faithful. ♡
+    </footer>
+  </main>
+
+  <script>
+    const prayerKey = "beStillPrayers";
+    const reflectionKey = "beStillReflections";
+
+    const counts = document.getElementById("counts");
+    const backupStatus =
+      document.getElementById("backupStatus");
+    const restoreStatus =
+      document.getElementById("restoreStatus");
+    const restoreFile =
+      document.getElementById("restoreFile");
+    const restoreButton =
+      document.getElementById("restoreButton");
+    const preview = document.getElementById("preview");
+
+    let pendingBackup = null;
+
+    function readSaved(key) {
+      const raw = localStorage.getItem(key);
+
+      if (raw === null) return [];
+
+      const data = JSON.parse(raw);
+
+      if (!Array.isArray(data)) {
+        throw new Error("Saved data has an unexpected format.");
+      }
+
+      return data;
+    }
+
+    function updateCounts() {
+      try {
+        const prayers = readSaved(prayerKey);
+        const reflections = readSaved(reflectionKey);
+
+        counts.textContent =
+          prayers.length + " saved prayers ♡  |  " +
+          reflections.length + " daily reflections";
+      } catch {
+        counts.textContent =
+          "Unable to read some saved entries.";
+      }
+    }
+
+    function validEntryArray(value, type) {
+      if (!Array.isArray(value)) return false;
+
+      return value.every(item => {
+        if (!item || typeof item !== "object" ||
+            Array.isArray(item)) return false;
+
+        if (type === "prayer") {
+          return typeof item.date === "string" &&
+            typeof item.subject === "string" &&
+            typeof item.prayer === "string";
+        }
+
+        return typeof item.date === "string" &&
+          (item.type === "prayer" ||
+           item.type === "question") &&
+          typeof item.answer === "string";
+      });
+    }
+
+    function validateBackup(data) {
+      return data &&
+        typeof data === "object" &&
+        !Array.isArray(data) &&
+        data.app === "Be Still" &&
+        data.version === 1 &&
+        validEntryArray(data.prayers, "prayer") &&
+        validEntryArray(data.reflections, "reflection");
+    }
+
+    document.getElementById("backupButton")
+      .addEventListener("click", () => {
+        backupStatus.textContent = "";
+
+        try {
+          const prayers = readSaved(prayerKey);
+          const reflections = readSaved(reflectionKey);
+
+          const backup = {
+            app: "Be Still",
+            version: 1,
+            createdAt: new Date().toISOString(),
+            prayers,
+            reflections
+          };
+
+          const json = JSON.stringify(backup, null, 2);
+          const blob = new Blob(
+            [json],
+            { type: "application/json" }
+          );
+
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          const date = new Date()
+            .toLocaleDateString("en-CA");
+
+          link.href = url;
+          link.download = "Be-Still-Backup-" +
+            date + ".json";
+
+          document.body.append(link);
+          link.click();
+          link.remove();
+
+          setTimeout(() => {
+            URL.revokeObjectURL(url);
+          }, 1000);
+
+          backupStatus.textContent =
+            "Your backup download was requested. ♡ " +
+            "Check your Downloads folder and keep " +
+            "the file somewhere safe.";
+        } catch {
+          backupStatus.textContent =
+            "Unable to create your backup. " +
+            "Your existing entries were not changed.";
+        }
+      });
+
+    restoreFile.addEventListener("change", async () => {
+      pendingBackup = null;
+      restoreButton.disabled = true;
+      preview.textContent = "";
+      restoreStatus.textContent = "";
+
+      const file = restoreFile.files[0];
+      if (!file) return;
+
+      if (file.size > 10 * 1024 * 1024) {
+        restoreStatus.textContent =
+          "This backup is too large to open here.";
+        return;
+      }
+
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+
+        if (!validateBackup(data)) {
+          throw new Error("Invalid backup");
+        }
+
+        pendingBackup = data;
+        restoreButton.disabled = false;
+
+        preview.textContent =
+          "Ready to restore " +
+          data.prayers.length + " prayers and " +
+          data.reflections.length + " reflections.";
+      } catch {
+        restoreStatus.textContent =
+          "This file isn't a recognized Be Still backup.";
+      }
+    });
+
+    restoreButton.addEventListener("click", () => {
+      if (!pendingBackup) return;
+
+      const confirmed = confirm(
+        "Restore this backup?\n\n" +
+        "This will replace your current saved prayers " +
+        "and reflections in this browser.\n\n" +
+        "Download a backup of your current entries first."
+      );
+
+      if (!confirmed) return;
+
+      const oldPrayers =
+        localStorage.getItem(prayerKey);
+      const oldReflections =
+        localStorage.getItem(reflectionKey);
+
+      try {
+        localStorage.setItem(
+          prayerKey,
+          JSON.stringify(pendingBackup.prayers)
+        );
+
+        localStorage.setItem(
+          reflectionKey,
+          JSON.stringify(pendingBackup.reflections)
+        );
+
+        restoreStatus.textContent =
+          "Your backup has been restored! ♡ " +
+          "Return to your journal to see your entries.";
+
+        pendingBackup = null;
+        restoreButton.disabled = true;
+        restoreFile.value = "";
+        preview.textContent = "";
+        updateCounts();
+      } catch {
+        try {
+          if (oldPrayers === null) {
+            localStorage.removeItem(prayerKey);
+          } else {
+            localStorage.setItem(prayerKey, oldPrayers);
+          }
+
+          if (oldReflections === null) {
+            localStorage.removeItem(reflectionKey);
+          } else {
+            localStorage.setItem(
+              reflectionKey, oldReflections
+            );
+          }
+        } catch {
+          restoreStatus.textContent =
+            "Restore failed, and the previous data " +
+            "could not be fully recovered. " +
+            "Do not close this browser until " +
+            "you have checked your entries.";
+          return;
+        }
+
+        restoreStatus.textContent =
+          "Restore failed. Your previous entries " +
+          "were kept.";
+      }
+    });
+
+    updateCounts();
+  </script>
+</body>
+</html>

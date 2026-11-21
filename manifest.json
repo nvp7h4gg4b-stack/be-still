@@ -1,0 +1,19 @@
+
+{
+  "name": "Be Still",
+  "short_name": "Be Still",
+  "description": "A quiet place for prayer, scripture, and reflection.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FAF7F1",
+  "theme_color": "#F4E4E3",
+  "icons": [
+    {
+      "src": "app-icon.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

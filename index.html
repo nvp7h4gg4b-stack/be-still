@@ -1,0 +1,249 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Be Still ♡</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #FAF7F1;
+      color: #796A61;
+      font-family: Georgia, serif;
+    }
+
+    .app {
+      max-width: 500px;
+      margin: auto;
+      padding: 35px 22px 55px;
+    }
+
+    h1 {
+      font-size: 31px;
+      font-weight: normal;
+      margin: 20px 0 10px;
+      line-height: 1.4;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      line-height: 1.7;
+      margin-bottom: 30px;
+    }
+
+    .verse {
+      background: #F4E4E3;
+      border-radius: 22px;
+      padding: 30px 20px;
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .verse-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .verse h2 {
+      font-size: 23px;
+      font-style: italic;
+      font-weight: normal;
+      line-height: 1.6;
+      margin: 20px 0;
+    }
+
+    .verse-reference {
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 15px;
+    }
+
+    .tile {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      min-height: 150px;
+      padding: 17px;
+      border: none;
+      border-radius: 20px;
+      color: #796A61;
+      text-decoration: none;
+      font-family: Georgia, serif;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .tile:visited,
+    .tile:hover,
+    .tile:active {
+      color: #796A61;
+      text-decoration: none;
+    }
+
+    .tile:focus-visible {
+      outline: 2px solid #796A61;
+      outline-offset: 3px;
+    }
+
+    .tile svg {
+      width: 29px;
+      height: 29px;
+      fill: none;
+      stroke: #796A61;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      margin-bottom: 22px;
+      flex-shrink: 0;
+    }
+
+    .tile strong {
+      font-size: 16px;
+      font-weight: normal;
+      line-height: 1.5;
+    }
+
+    .beige {
+      background: #E8D9CB;
+    }
+
+    .yellow {
+      background: #F5EBCD;
+    }
+
+    .pink {
+      background: #F4E4E3;
+    }
+
+    .cream {
+      background: #EEE7DC;
+    }
+
+    footer {
+      margin-top: 35px;
+      text-align: center;
+      font-style: italic;
+      font-size: 13px;
+    }
+  </style>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#F4E4E3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Be Still">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+<link rel="icon" type="image/png" href="app-icon.png">
+<link rel="apple-touch-icon" href="app-icon.png">
+
+</head>
+
+<body>
+  <main class="app">
+
+    <h1 id="greeting">Welcome to Be Still ♡</h1>
+
+    <p class="subtitle">
+      A quiet place to spend time with God. ♡
+    </p>
+
+    <section class="verse">
+      <p class="verse-label">
+        Your Favorite Bible Verse
+      </p>
+
+      <h2>
+        "Be still, and know that I am God."
+      </h2>
+
+      <p class="verse-reference">
+        Psalm 46:10
+      </p>
+    </section>
+
+    <div class="grid">
+
+      <!-- Prayer Journal -->
+      <a href="prayer.html" class="tile beige">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/>
+          <path d="M12 8.5c-1.5-2-4.5 0-2 2.5l2 2 2-2c2.5-2.5-.5-4.5-2-2Z"/>
+        </svg>
+        <strong>Prayer Journal</strong>
+      </a>
+
+      <!-- Bible Verses -->
+      <a href="verses.html" class="tile yellow">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 7v14"/>
+          <path d="M3 18V5a2 2 0 0 1 2-2h3a4 4 0 0 1 4 4 4 4 0 0 1 4-4h3a2 2 0 0 1 2 2v13"/>
+          <path d="M3 18h5a4 4 0 0 1 4 3 4 4 0 0 1 4-3h5"/>
+        </svg>
+        <strong>Bible Verses</strong>
+      </a>
+
+      <!-- Remember When -->
+      <a href="remember.html" class="tile pink">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 12c-3-4-1-8 1-8 3 0 3 4-1 8Z"/>
+          <path d="M12 12c4-3 8-1 8 1 0 3-4 3-8-1Z"/>
+          <path d="M12 12c3 4 1 8-1 8-3 0-3-4 1-8Z"/>
+          <path d="M12 12c-4 3-8 1-8-1 0-3 4-3 8 1Z"/>
+          <circle cx="12" cy="12" r="1.2"/>
+        </svg>
+        <strong>Remember When...</strong>
+      </a>
+
+      <!-- Daily Reflection -->
+      <a href="reflection.html" class="tile cream">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m15 5 4 4"/>
+          <path d="M4 20l4.5-1 11-11a2.1 2.1 0 0 0-3-3l-11 11L4 20Z"/>
+          <path d="M4 20h16"/>
+        </svg>
+        <strong>Daily Reflection</strong>
+</a>
+    </div>
+
+    <footer>
+  <a href="backup.html" style="color: #796A61; text-decoration: none; font-style: normal; display: block; margin-bottom: 18px;">
+    Backup & Restore ♡
+  </a>
+  Be still. Be present. Be faithful.
+</footer>
+
+  </main>
+
+  <script>
+    const hour = new Date().getHours();
+
+    let greeting;
+
+    if (hour >= 5 && hour < 12) {
+      greeting = "Good morning";
+    } else if (hour >= 12 && hour < 17) {
+      greeting = "Good afternoon";
+    } else if (hour >= 17 && hour < 21) {
+      greeting = "Good evening";
+    } else {
+      greeting = "Good night";
+    }
+
+    document.getElementById("greeting").textContent =
+      greeting + ", Carolanne! ♡";
+  </script>
+</body>
+</html>

@@ -1,0 +1,420 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bible Verses | Be Still</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #FAF7F1;
+      color: #796A61;
+      font-family: Georgia, serif;
+    }
+
+    .app {
+      max-width: 550px;
+      margin: auto;
+      padding: 30px 22px 60px;
+    }
+
+    .back {
+      color: #796A61;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: normal;
+      margin: 30px 0 10px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      line-height: 1.8;
+      margin-bottom: 25px;
+    }
+
+    .search {
+      width: 100%;
+      padding: 16px;
+      border: 1px solid #E8D9CB;
+      border-radius: 15px;
+      background: #FFFCF8;
+      color: #796A61;
+      font: 15px Georgia, serif;
+      outline-color: #B89C91;
+    }
+
+    h2 {
+      font-size: 21px;
+      font-weight: normal;
+      margin: 30px 0 15px;
+    }
+
+    .favorites {
+      background: #F4E4E3;
+      padding: 20px;
+      border-radius: 20px;
+    }
+
+    .favorite {
+      background: #FFFCF8;
+      padding: 15px;
+      border-radius: 13px;
+      margin-top: 10px;
+      line-height: 1.6;
+    }
+
+    .favorite:first-child {
+      margin-top: 0;
+    }
+
+    .favorite strong {
+      font-weight: normal;
+      font-size: 17px;
+    }
+
+    .count {
+      display: block;
+      font-size: 12px;
+      margin-top: 5px;
+      opacity: .85;
+    }
+
+    .verse-card {
+      background: #F5EBCD;
+      border-radius: 16px;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+
+    .verse-button {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 17px;
+      border: none;
+      background: transparent;
+      color: #65574F;
+      font: 17px Georgia, serif;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .verse-button small {
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .verse-details {
+      padding: 0 13px 15px;
+    }
+
+    .verse-details[hidden] {
+      display: none;
+    }
+
+    .prayer {
+      background: #FFFCF8;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 12px;
+    }
+
+    .prayer h3 {
+      font-size: 16px;
+      font-weight: normal;
+      margin: 8px 0;
+    }
+
+    .prayer p {
+      font-size: 14px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .date {
+      font-size: 12px;
+      opacity: .8;
+    }
+
+    .status {
+      font-size: 12px;
+      display: inline-block;
+      padding: 7px 11px;
+      border-radius: 20px;
+      background: #F4E4E3;
+    }
+
+    .empty {
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 13px;
+      font-style: italic;
+      margin-top: 40px;
+      opacity: .8;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <a href="index.html" class="back">
+      ← Back to Be Still
+    </a>
+
+    <h1>Bible Verses ♡</h1>
+
+    <p class="subtitle">
+      A little collection of the Scriptures you've
+      held close to your heart throughout your prayers.
+    </p>
+
+    <input
+      type="search"
+      id="search"
+      class="search"
+      placeholder="Search Psalm 46:10, Romans 8:28..."
+      aria-label="Search Bible verse references"
+    >
+
+    <h2>Most Treasured Verses ♡</h2>
+    <section class="favorites" id="favorites"></section>
+
+    <h2>My Scripture Collection ♡</h2>
+    <section id="collection"></section>
+
+    <p class="footer">
+      His Word is a lamp unto my feet. ♡
+    </p>
+  </main>
+
+  <script>
+    const storageKey = "beStillPrayers";
+    const favoritesBox = document.getElementById("favorites");
+    const collectionBox = document.getElementById("collection");
+    const searchInput = document.getElementById("search");
+
+    function getPrayers() {
+      try {
+        const data = JSON.parse(localStorage.getItem(storageKey));
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function element(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    }
+
+    function formatDate(date) {
+      if (!date) return "Date not recorded";
+      const parts = date.split("-");
+      if (parts.length !== 3) return date;
+      return parts[1] + "/" + parts[2] + "/" + parts[0];
+    }
+
+    function collectVerses(prayers) {
+      const verses = new Map();
+
+      prayers.forEach(prayer => {
+        const references = (prayer.verses || "")
+          .split(/[,;\n]+/)
+          .map(value => value.trim())
+          .filter(Boolean);
+
+        const unique = new Set();
+
+        references.forEach(reference => {
+          const key = reference
+            .toLowerCase()
+            .replace(/\s+/g, " ");
+
+          if (unique.has(key)) return;
+          unique.add(key);
+
+          if (!verses.has(key)) {
+            verses.set(key, {
+              name: reference,
+              prayers: []
+            });
+          }
+
+          verses.get(key).prayers.push(prayer);
+        });
+      });
+
+      return [...verses.values()].sort(
+        (a, b) =>
+          b.prayers.length - a.prayers.length ||
+          a.name.localeCompare(b.name)
+      );
+    }
+
+    function render() {
+      const verses = collectVerses(getPrayers());
+      const query = searchInput.value.trim().toLowerCase();
+
+      favoritesBox.replaceChildren();
+      collectionBox.replaceChildren();
+
+      if (verses.length === 0) {
+        favoritesBox.append(
+          element(
+            "p",
+            "empty",
+            "Your most treasured verses will appear here as you add Scriptures to your prayers. ♡"
+          )
+        );
+
+        collectionBox.append(
+          element(
+            "p",
+            "empty",
+            "No Bible verses saved yet. ♡"
+          )
+        );
+        return;
+      }
+
+      verses.slice(0, 3).forEach((verse, index) => {
+        const card = element("div", "favorite");
+
+        const title = element(
+          "strong",
+          "",
+          (index + 1) + ". " + verse.name + " ♡"
+        );
+
+        const count = element(
+          "span",
+          "count",
+          "Referenced in " + verse.prayers.length +
+          (verse.prayers.length === 1
+            ? " prayer"
+            : " prayers")
+        );
+
+        card.append(title, count);
+        favoritesBox.append(card);
+      });
+
+      const filtered = verses.filter(verse =>
+        verse.name.toLowerCase().includes(query)
+      );
+
+      if (filtered.length === 0) {
+        collectionBox.append(
+          element(
+            "p",
+            "empty",
+            "No verses matched your search. ♡"
+          )
+        );
+        return;
+      }
+
+      filtered.forEach(verse => {
+        const card = element("article", "verse-card");
+
+        const button = element("button", "verse-button");
+        button.type = "button";
+        button.setAttribute("aria-expanded", "false");
+
+        const name = element("span", "", verse.name + " ♡");
+        const count = element(
+          "small",
+          "",
+          verse.prayers.length +
+          (verse.prayers.length === 1
+            ? " prayer +"
+            : " prayers +")
+        );
+
+        button.append(name, count);
+
+        const details = element("div", "verse-details");
+        details.hidden = true;
+
+        button.addEventListener("click", () => {
+          details.hidden = !details.hidden;
+
+          button.setAttribute(
+            "aria-expanded",
+            String(!details.hidden)
+          );
+
+          count.textContent =
+            verse.prayers.length +
+            (verse.prayers.length === 1
+              ? " prayer "
+              : " prayers ") +
+            (details.hidden ? "+" : "−");
+        });
+
+        const sortedPrayers = [...verse.prayers].sort(
+          (a, b) =>
+            (b.date || "").localeCompare(a.date || "")
+        );
+
+        sortedPrayers.forEach(prayer => {
+          const prayerCard = element("div", "prayer");
+
+          prayerCard.append(
+            element(
+              "div",
+              "date",
+              "Prayed: " + formatDate(prayer.date)
+            ),
+            element(
+              "h3",
+              "",
+              prayer.subject || "Untitled prayer"
+            ),
+            element(
+              "p",
+              "",
+              prayer.prayer || ""
+            ),
+            element(
+              "span",
+              "status",
+              prayer.answered === true
+                ? "✓ Answered ♡"
+                : "Still praying ♡"
+            )
+          );
+
+          details.append(prayerCard);
+        });
+
+        card.append(button, details);
+        collectionBox.append(card);
+      });
+    }
+
+    searchInput.addEventListener("input", render);
+    window.addEventListener("pageshow", render);
+
+    render();
+  </script>
+</body>
+</html>

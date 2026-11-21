@@ -1,0 +1,479 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Remember When… | Be Still</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #FAF7F1;
+      color: #796A61;
+      font-family: Georgia, serif;
+    }
+
+    .app {
+      max-width: 550px;
+      margin: auto;
+      padding: 30px 22px 60px;
+    }
+
+    .back {
+      color: #796A61;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: normal;
+      margin: 30px 0 10px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      line-height: 1.8;
+      margin-bottom: 25px;
+    }
+
+    .search {
+      width: 100%;
+      padding: 16px;
+      border: 1px solid #E8D9CB;
+      border-radius: 15px;
+      background: #FFFCF8;
+      color: #796A61;
+      font: 15px Georgia, serif;
+      outline-color: #B89C91;
+    }
+
+    .summary {
+      background: #F4E4E3;
+      border-radius: 20px;
+      padding: 20px;
+      margin: 22px 0;
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    .summary strong {
+      font-size: 25px;
+      font-weight: normal;
+    }
+
+    .summary small {
+      display: block;
+      font-size: 13px;
+    }
+
+    h2 {
+      font-size: 21px;
+      font-weight: normal;
+      margin-top: 30px;
+    }
+
+    .group {
+      background: #E8D9CB;
+      border-radius: 18px;
+      margin-top: 16px;
+      overflow: hidden;
+    }
+
+    .group-title {
+      width: 100%;
+      border: none;
+      background: transparent;
+      color: #65574F;
+      padding: 19px;
+      font: 18px Georgia, serif;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .group-title small {
+      font-size: 12px;
+      white-space: nowrap;
+      align-self: center;
+    }
+
+    .group-content {
+      padding: 0 14px 15px;
+    }
+
+    .prayer {
+      background: #FAF7F1;
+      border-radius: 14px;
+      padding: 16px;
+      margin-top: 10px;
+      overflow-wrap: anywhere;
+    }
+
+    .date {
+      font-size: 12px;
+      opacity: .8;
+    }
+
+    .prayer h3 {
+      font-size: 17px;
+      font-weight: normal;
+      margin: 9px 0;
+    }
+
+    .prayer p {
+      white-space: pre-wrap;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .verses {
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .status {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 20px;
+      background: #F5EBCD;
+      font-size: 12px;
+    }
+
+    .answered {
+      background: #F4E4E3;
+      padding: 14px;
+      border-radius: 12px;
+      margin-top: 12px;
+    }
+
+    .answered p {
+      margin-bottom: 0;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 35px 15px;
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 13px;
+      font-style: italic;
+      opacity: .8;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+
+    <a href="index.html" class="back">
+      ← Back to Be Still
+    </a>
+
+    <h1>Remember When… ♡</h1>
+
+    <p class="subtitle">
+      Remember when you prayed for something you thought
+      would never change? Look back at your conversations
+      with God and remember how far you've come.
+    </p>
+
+    <input
+      class="search"
+      id="search"
+      type="search"
+      placeholder="Search relationships, patience, trust..."
+      aria-label="Search your saved prayers"
+    >
+
+    <div class="summary" id="summary"></div>
+
+    <h2>My Prayer Stories ♡</h2>
+
+    <div id="groups"></div>
+
+    <p class="footer">
+      A little reminder of God's faithfulness. ♡
+    </p>
+
+  </main>
+
+  <script>
+    const storageKey = "beStillPrayers";
+    const searchInput = document.getElementById("search");
+    const groupsBox = document.getElementById("groups");
+    const summaryBox = document.getElementById("summary");
+
+    function getPrayers() {
+      try {
+        const saved = JSON.parse(
+          localStorage.getItem(storageKey)
+        );
+
+        return Array.isArray(saved) ? saved : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function makeElement(tag, className, content) {
+      const element = document.createElement(tag);
+
+      if (className) element.className = className;
+
+      if (content !== undefined) {
+        element.textContent = content;
+      }
+
+      return element;
+    }
+
+    function formatDate(value) {
+      if (!value) return "Date not recorded";
+
+      const parts = value.split("-");
+
+      if (parts.length !== 3) return value;
+
+      return parts[1] + "/" + parts[2] + "/" + parts[0];
+    }
+
+    function render() {
+      const prayers = getPrayers();
+      const query = searchInput.value.trim().toLowerCase();
+
+      const answeredCount = prayers.filter(
+        prayer => prayer.answered === true
+      ).length;
+
+      summaryBox.replaceChildren();
+
+      const number = makeElement(
+        "strong", "", String(prayers.length)
+      );
+
+      const summaryText = makeElement(
+        "small",
+        "",
+        "Prayers written ♡"
+      );
+
+      const answeredText = makeElement(
+        "small",
+        "",
+        answeredCount + " marked as answered"
+      );
+
+      summaryBox.append(
+        number,
+        summaryText,
+        answeredText
+      );
+
+      groupsBox.replaceChildren();
+
+      const filtered = prayers.filter(prayer => {
+        const searchable = [
+          prayer.subject || "",
+          prayer.prayer || "",
+          prayer.verses || "",
+          prayer.answerNote || ""
+        ].join(" ").toLowerCase();
+
+        return searchable.includes(query);
+      });
+
+      if (filtered.length === 0) {
+        groupsBox.append(
+          makeElement(
+            "p",
+            "empty",
+            prayers.length === 0
+              ? "Your prayer stories will appear here once you save your first prayer. ♡"
+              : "No prayers matched your search. ♡"
+          )
+        );
+        return;
+      }
+
+      const grouped = new Map();
+
+      filtered.forEach(prayer => {
+        const subject = (prayer.subject || "Untitled").trim();
+        const key = subject.toLowerCase();
+
+        if (!grouped.has(key)) {
+          grouped.set(key, {
+            title: subject,
+            prayers: []
+          });
+        }
+
+        grouped.get(key).prayers.push(prayer);
+      });
+
+      const subjects = [...grouped.values()].sort(
+        (a, b) => b.prayers.length - a.prayers.length
+      );
+
+      subjects.forEach(group => {
+        const container = makeElement("section", "group");
+
+        const toggle = makeElement(
+          "button",
+          "group-title"
+        );
+
+        toggle.type = "button";
+        toggle.setAttribute("aria-expanded", "false");
+
+        const name = makeElement(
+          "span",
+          "",
+          group.title + " ♡"
+        );
+
+        const count = makeElement(
+          "small",
+          "",
+          group.prayers.length +
+          (group.prayers.length === 1
+            ? " prayer +"
+            : " prayers +")
+        );
+
+        toggle.append(name, count);
+
+        const content = makeElement(
+          "div",
+          "group-content"
+        );
+
+        content.hidden = true;
+
+        toggle.addEventListener("click", () => {
+          content.hidden = !content.hidden;
+
+          toggle.setAttribute(
+            "aria-expanded",
+            String(!content.hidden)
+          );
+
+          count.textContent =
+            group.prayers.length +
+            (group.prayers.length === 1
+              ? " prayer "
+              : " prayers ") +
+            (content.hidden ? "+" : "−");
+        });
+
+        group.prayers.sort(
+          (a, b) => (b.date || "").localeCompare(a.date || "")
+        );
+
+        group.prayers.forEach(prayer => {
+          const card = makeElement("article", "prayer");
+
+          const date = makeElement(
+            "div",
+            "date",
+            "Prayed: " + formatDate(prayer.date)
+          );
+
+          const title = makeElement(
+            "h3",
+            "",
+            prayer.subject || "Untitled prayer"
+          );
+
+          const text = makeElement(
+            "p",
+            "",
+            prayer.prayer || ""
+          );
+
+          card.append(date, title);
+
+          if (prayer.verses) {
+            card.append(
+              makeElement(
+                "div",
+                "verses",
+                "Bible verses: " + prayer.verses
+              )
+            );
+          }
+
+          card.append(text);
+
+          if (prayer.answered === true) {
+            card.append(
+              makeElement(
+                "span",
+                "status",
+                "✓ Answered ♡"
+              )
+            );
+
+            const answer = makeElement(
+              "div",
+              "answered"
+            );
+
+            answer.append(
+              makeElement(
+                "div",
+                "date",
+                "Answered: " +
+                formatDate(prayer.answerDate)
+              )
+            );
+
+            if (prayer.answerNote) {
+              answer.append(
+                makeElement(
+                  "p",
+                  "",
+                  prayer.answerNote
+                )
+              );
+            }
+
+            card.append(answer);
+          } else {
+            card.append(
+              makeElement(
+                "span",
+                "status",
+                "Still praying ♡"
+              )
+            );
+          }
+
+          content.append(card);
+        });
+
+        container.append(toggle, content);
+        groupsBox.append(container);
+      });
+    }
+
+    searchInput.addEventListener("input", render);
+
+    window.addEventListener("pageshow", render);
+
+    render();
+  </script>
+</body>
+</html>

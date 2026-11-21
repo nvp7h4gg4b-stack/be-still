@@ -1,0 +1,415 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Upload Prayer | Be Still</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #FAF7F1;
+      color: #796A61;
+      font-family: Georgia, serif;
+    }
+
+    .app {
+      max-width: 550px;
+      margin: auto;
+      padding: 30px 22px 60px;
+    }
+
+    .back {
+      color: #796A61;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    h1 {
+      font-size: 30px;
+      font-weight: normal;
+      margin: 30px 0 10px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      line-height: 1.8;
+      margin-bottom: 25px;
+    }
+
+    .card {
+      background: #F4E4E3;
+      border-radius: 20px;
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    .review {
+      background: #F5EBCD;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: normal;
+      margin: 0 0 12px;
+    }
+
+    p {
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      margin: 17px 0 8px;
+    }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid #E8D9CB;
+      border-radius: 12px;
+      background: #FFFCF8;
+      color: #796A61;
+      padding: 13px;
+      font: 15px Georgia, serif;
+    }
+
+    textarea {
+      min-height: 210px;
+      resize: vertical;
+      line-height: 1.7;
+    }
+
+    input[type="file"] {
+      font-size: 13px;
+    }
+
+    .preview {
+      display: block;
+      max-width: 100%;
+      max-height: 500px;
+      object-fit: contain;
+      border-radius: 12px;
+      margin-top: 16px;
+    }
+
+    .preview[hidden],
+    .review[hidden] {
+      display: none;
+    }
+
+    button {
+      width: 100%;
+      border: none;
+      border-radius: 13px;
+      background: #E8D9CB;
+      color: #65574F;
+      padding: 15px;
+      font: 16px Georgia, serif;
+      cursor: pointer;
+      margin-top: 18px;
+    }
+
+    .notice {
+      font-size: 12px;
+      line-height: 1.7;
+      margin-top: 15px;
+    }
+
+    .status {
+      margin-top: 12px;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 35px;
+      font-size: 13px;
+      font-style: italic;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <a href="prayer.html" class="back">
+      ← Back to Prayer Journal
+    </a>
+
+    <h1>Upload Handwritten Prayer ♡</h1>
+
+    <p class="subtitle">
+      Bring your handwritten conversations with God
+      into your prayer journal.
+    </p>
+
+    <section class="card">
+      <h2>Choose Your Prayer Photo ♡</h2>
+      <p>
+        Select a clear picture of your handwritten prayer.
+        You'll review the details before anything is saved.
+      </p>
+
+      <input
+        type="file"
+        id="photo"
+        accept="image/*"
+        aria-label="Choose a handwritten prayer photo"
+      >
+
+      <img
+        id="preview"
+        class="preview"
+        alt="Preview of your handwritten prayer"
+        hidden
+      >
+
+      <p class="notice">
+        Handwriting recognition isn't connected yet.
+        For now, use your photo to type the prayer
+        into the review form below.
+      </p>
+    </section>
+
+    <section class="card review" id="review" hidden>
+      <h2>Review Your Prayer ♡</h2>
+
+      <p>
+        Check every detail before saving.
+        Use the date you originally wrote the prayer,
+        not today's upload date.
+      </p>
+
+<button type="button" id="readHandwriting">
+  Read My Handwriting ♡
+</button>
+<p class="status" id="readingStatus" role="status"></p>
+
+      <form id="uploadForm">
+        <label for="date">Original date of prayer</label>
+        <input type="date" id="date" required>
+
+        <label for="subject">Subject</label>
+        <input
+          type="text"
+          id="subject"
+          placeholder="Relationship, patience, trust..."
+          required
+        >
+
+        <label for="verses">Bible verses (optional)</label>
+        <input
+          type="text"
+          id="verses"
+          placeholder="Psalm 46:10, Matthew 10:26"
+        >
+
+        <label for="prayer">Dear God,</label>
+        <textarea
+          id="prayer"
+          placeholder="Type your handwritten prayer here..."
+          required
+        ></textarea>
+
+        <button type="submit">
+          Approve & Save My Prayer ♡
+        </button>
+      </form>
+
+      <div class="status" id="status" role="status"></div>
+    </section>
+
+    <footer>
+      Be still. Be present. Be faithful. ♡
+    </footer>
+  </main>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  
+<script>
+    const photoInput = document.getElementById("photo");
+    const preview = document.getElementById("preview");
+    const review = document.getElementById("review");
+    const form = document.getElementById("uploadForm");
+    const status = document.getElementById("status");
+
+const readButton = document.getElementById("readHandwriting");
+const readingStatus = document.getElementById("readingStatus");
+
+readButton.addEventListener("click", async () => {
+  const file = photoInput.files[0];
+
+  if (!file) {
+    readingStatus.textContent = "Please choose a photo first. ♡";
+    return;
+  }
+
+  if (typeof Tesseract === "undefined") {
+    readingStatus.textContent =
+      "The handwriting reader couldn't load. Check your internet connection.";
+    return;
+  }
+
+  readButton.disabled = true;
+  readingStatus.textContent =
+    "Reading your handwriting... This may take a moment. ♡";
+
+  try {
+    const result = await Tesseract.recognize(file, "eng");
+    const text = result.data.text.trim();
+
+    if (!text) {
+      readingStatus.textContent =
+        "I couldn't recognize the writing. Try a clearer photo.";
+      return;
+    }
+
+    const prayerField = document.getElementById("prayer");
+
+    if (
+      prayerField.value.trim() &&
+      !confirm("Replace the text currently in your prayer box?")
+    ) {
+      readingStatus.textContent =
+        "Your existing prayer text was kept. ♡";
+      return;
+    }
+
+    prayerField.value = text;
+    readingStatus.textContent =
+      "Finished! Please review and correct your prayer before saving. ♡";
+  } catch (error) {
+    console.error(error);
+    readingStatus.textContent =
+      "The reader couldn't process this photo. Please try again.";
+  } finally {
+    readButton.disabled = false;
+  }
+});
+
+    const storageKey = "beStillPrayers";
+    let imageUrl = null;
+
+    photoInput.addEventListener("change", () => {
+      status.textContent = "";
+
+      if (imageUrl) {
+        URL.revokeObjectURL(imageUrl);
+        imageUrl = null;
+      }
+
+      const file = photoInput.files[0];
+
+      if (!file) {
+        preview.hidden = true;
+        preview.removeAttribute("src");
+        review.hidden = true;
+        return;
+      }
+
+      if (!file.type.startsWith("image/")) {
+        alert("Please choose an image file.");
+        photoInput.value = "";
+        preview.hidden = true;
+        review.hidden = true;
+        return;
+      }
+
+      imageUrl = URL.createObjectURL(file);
+      preview.src = imageUrl;
+      preview.hidden = false;
+      review.hidden = false;
+
+      // Leave the original prayer date blank for review.
+      document.getElementById("date").value = "";
+    });
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+
+      const date = document.getElementById("date").value;
+      const subject =
+        document.getElementById("subject").value.trim();
+      const verses =
+        document.getElementById("verses").value.trim();
+      const prayer =
+        document.getElementById("prayer").value.trim();
+
+      if (!photoInput.files.length) {
+        status.textContent =
+          "Choose your handwritten prayer photo first.";
+        return;
+      }
+
+      if (!date || !subject || !prayer) {
+        status.textContent =
+          "Please complete the date, subject, and prayer.";
+        return;
+      }
+
+      let prayers;
+
+      try {
+        const saved = JSON.parse(
+          localStorage.getItem(storageKey)
+        );
+
+        prayers = saved === null ? [] : saved;
+
+        if (!Array.isArray(prayers)) {
+          throw new Error("Invalid saved prayer data");
+        }
+      } catch {
+        status.textContent =
+          "Unable to read your saved prayers. " +
+          "Nothing was changed.";
+        return;
+      }
+
+      const confirmed = confirm(
+        "Have you reviewed the original date, " +
+        "subject, Bible verses, and prayer text?\n\n" +
+        "Save this prayer to your Prayer Journal?"
+      );
+
+      if (!confirmed) return;
+
+      const entry = {
+        id: crypto.randomUUID(),
+        date,
+        subject,
+        verses,
+        prayer,
+        answered: false,
+        answerDate: "",
+        answerNote: ""
+      };
+
+      try {
+        localStorage.setItem(
+          storageKey,
+          JSON.stringify([...prayers, entry])
+        );
+
+        status.textContent =
+          "Your prayer has been saved! ♡";
+
+        alert("Your prayer has been saved! ♡");
+        window.location.href = "prayer.html";
+      } catch {
+        status.textContent =
+          "Your prayer could not be saved. " +
+          "Please copy your text before leaving.";
+      }
+    });
+
+    window.addEventListener("pagehide", () => {
+      if (imageUrl) URL.revokeObjectURL(imageUrl);
+    });
+  </script>
+</body>
+</html>

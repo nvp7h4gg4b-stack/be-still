@@ -1,0 +1,382 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prayer Journal | Be Still</title>
+  <style>.
+.answer-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.answer-check {
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  border: 2px solid #B89C91;
+  border-radius: 50%;
+  background: #FFFCF8;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.answer-check:checked {
+  background: #B89C91;
+  border-color: #B89C91;
+}
+
+.answer-check:checked::after {
+  content: "✓";
+  display: block;
+  color: white;
+  text-align: center;
+  line-height: 21px;
+}
+
+.answer-details {
+  margin-top: 15px;
+  padding: 15px;
+  background: #FAF7F1;
+  border-radius: 12px;
+}
+
+.answer-details label {
+  margin-top: 10px;
+}
+
+.answer-details button {
+  margin-top: 12px;
+}
+<style>.
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #FAF7F1;
+      color: #796A61;
+      font-family: Georgia, serif;
+    }
+
+    .app {
+      max-width: 500px;
+      margin: auto;
+      padding: 28px 22px 50px;
+    }
+
+    .back {
+      color: #796A61;
+      text-decoration: none;
+      font-size: 15px;
+    }
+
+    h1 {
+      font-size: 30px;
+      font-weight: normal;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 25px;
+    }
+
+    .journal {
+      background: #F4E4E3;
+      border-radius: 22px;
+      padding: 22px;
+    }
+
+    label {
+      display: block;
+      margin: 18px 0 8px;
+      font-size: 14px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #E8D9CB;
+      border-radius: 12px;
+      background: #FFFCF8;
+      color: #796A61;
+      font: 15px Georgia, serif;
+    }
+
+    textarea {
+      min-height: 220px;
+      resize: vertical;
+      line-height: 1.7;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      margin-top: 20px;
+      border: none;
+      border-radius: 14px;
+      background: #E8D9CB;
+      color: #65574F;
+      font: 16px Georgia, serif;
+      cursor: pointer;
+    }
+
+    .saved {
+      margin-top: 30px;
+    }
+
+    .entry {
+      background: #F5EBCD;
+      border-radius: 15px;
+      padding: 16px;
+      margin-top: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .entry h3 {
+      margin: 5px 0;
+      font-weight: normal;
+    }
+
+    .entry p {
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    .small {
+      font-size: 12px;
+      opacity: .8;
+    }
+    .answer-details[hidden] {
+  display: none;
+}
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <a class="back" href="index.html">← Back to Be Still</a>
+
+    <h1>My Prayer Journal ♡</h1>
+
+<a href="upload.html" style="display: block; text-align: center; background: #F5EBCD; color: #796A61; text-decoration: none; padding: 15px; border-radius: 14px; margin: 20px 0;">
+  Upload Handwritten Prayer ♡
+</a>
+    <p class="subtitle">
+      A quiet place for your conversations with God.
+    </p>
+
+    <form class="journal" id="prayerForm">
+      <label for="date">Date of prayer</label>
+      <input type="date" id="date" required>
+
+      <label for="subject">Subject</label>
+      <input type="text" id="subject"
+             placeholder="Relationship, patience, trust..."
+             required>
+
+      <label for="verses">Bible verses (optional)</label>
+      <input type="text" id="verses"
+             placeholder="Psalm 46:10, Matthew 10:26">
+
+      <label for="prayer">Dear God,</label>
+      <textarea id="prayer"
+                placeholder="Write what's on your heart..."
+                required></textarea>
+
+      <button type="submit">Save My Prayer ♡</button>
+    </form>
+
+    <section class="saved">
+      <h2>My Saved Prayers</h2>
+      <div id="entries"></div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("prayerForm");
+    const entriesBox = document.getElementById("entries");
+    const dateField = document.getElementById("date");
+
+    dateField.value = new Date().toLocaleDateString("en-CA");
+
+    const storageKey = "beStillPrayers";
+    let prayers = [];
+
+    try {
+      prayers = JSON.parse(localStorage.getItem(storageKey)) || [];
+      if (!Array.isArray(prayers)) prayers = [];
+    } catch {
+      prayers = [];
+    }
+
+    function displayPrayers() {
+      entriesBox.replaceChildren();
+
+      const sorted = [...prayers].sort(
+        (a, b) => b.date.localeCompare(a.date)
+      );
+
+      if (sorted.length === 0) {
+        entriesBox.textContent = "No prayers saved yet. ♡";
+        return;
+      }
+
+      sorted.forEach(item => {
+        const card = document.createElement("article");
+        card.className = "entry";
+
+        const heading = document.createElement("h3");
+        heading.textContent = item.subject;
+
+        const date = document.createElement("div");
+        date.className = "small";
+        date.textContent = item.date;
+
+        const verses = document.createElement("div");
+        verses.className = "small";
+        verses.textContent = item.verses
+          ? "Bible verses: " + item.verses
+          : "";
+
+        const text = document.createElement("p");
+        text.textContent = item.prayer;
+
+        
+const answerRow = document.createElement("div");
+answerRow.className = "answer-row";
+
+const checkbox = document.createElement("input");
+checkbox.type = "checkbox";
+checkbox.className = "answer-check";
+checkbox.checked = item.answered === true;
+checkbox.setAttribute(
+  "aria-label",
+  "Mark " + item.subject + " as answered"
+);
+
+const answerLabel = document.createElement("span");
+answerLabel.textContent = checkbox.checked
+  ? "Answered ♡"
+  : "Mark as answered";
+
+answerRow.append(checkbox, answerLabel);
+
+const details = document.createElement("div");
+details.className = "answer-details";
+details.hidden = !checkbox.checked;
+
+const dateLabel = document.createElement("label");
+dateLabel.textContent = "Date prayer was answered";
+
+const answerDate = document.createElement("input");
+answerDate.type = "date";
+answerDate.value = item.answerDate || "";
+
+const noteLabel = document.createElement("label");
+noteLabel.textContent = "How was this prayer answered?";
+
+const answerNote = document.createElement("textarea");
+answerNote.placeholder =
+  "Write how you saw God answer this prayer...";
+answerNote.value = item.answerNote || "";
+answerNote.style.minHeight = "110px";
+
+const saveAnswer = document.createElement("button");
+saveAnswer.type = "button";
+saveAnswer.textContent = "Save Answer ♡";
+
+details.append(
+  dateLabel,
+  answerDate,
+  noteLabel,
+  answerNote,
+  saveAnswer
+);
+
+checkbox.addEventListener("change", () => {
+  details.hidden = !checkbox.checked;
+
+  if (!checkbox.checked) {
+    const confirmed = confirm(
+      "Remove the answered checkmark? Your reflection will be kept."
+    );
+
+    if (!confirmed) {
+      checkbox.checked = true;
+      details.hidden = false;
+      return;
+    }
+
+    item.answered = false;
+    localStorage.setItem(storageKey, JSON.stringify(prayers));
+    answerLabel.textContent = "Mark as answered";
+  } else {
+    answerLabel.textContent = "Answered ♡";
+  }
+});
+
+saveAnswer.addEventListener("click", () => {
+  if (!answerDate.value) {
+    alert("Please enter the date your prayer was answered.");
+    return;
+  }
+
+  item.answered = true;
+  item.answerDate = answerDate.value;
+  item.answerNote = answerNote.value.trim();
+
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(prayers));
+    checkbox.checked = true;
+    answerLabel.textContent = "Answered ♡";
+    alert("Your answered prayer has been saved! ♡");
+  } catch {
+    alert("Could not save. Please copy your reflection.");
+  }
+});
+
+card.append(date, heading, verses, text, answerRow, details);
+entriesBox.append(card);
+
+      });
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+
+      const entry = {
+        id: crypto.randomUUID(),
+        date: dateField.value,
+        subject: document.getElementById("subject").value.trim(),
+        verses: document.getElementById("verses").value.trim(),
+        prayer: document.getElementById("prayer").value.trim(),
+        answered: false,
+        answerDate: "",
+        answerNote: ""
+      };
+
+      if (!entry.subject || !entry.prayer || !entry.date) return;
+
+      const updated = [...prayers, entry];
+
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(updated));
+        prayers = updated;
+        displayPrayers();
+        form.reset();
+        dateField.value = new Date().toLocaleDateString("en-CA");
+        alert("Your prayer has been saved. ♡");
+      } catch {
+        alert("Your prayer could not be saved. Please copy your text before leaving this page.");
+      }
+    });
+
+    displayPrayers();
+  </script>
+</body>
+</html>
